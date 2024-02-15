@@ -1,6 +1,6 @@
 # Load Service
 
-A microservice which estimates the current load on the backend.
+A microservice that estimates the current load on the backend.
 
 ## Quickstart
 
