@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden
 from django.utils.decorators import method_decorator
@@ -19,8 +21,11 @@ class GetMetricsResource(View):
 
         metrics = []
 
-        # Add debug tracks to n_tracks.
         metrics.append(f'n_app_starts {Start.objects.count()}')
+        
+        with open(str(settings.BASE_DIR) + f"/static/load_response.json", "r") as f:
+            response_json = json.loads(f.read())
+        metrics.append(f'load_warning {int(response_json["warning"])}')
 
         content = '\n'.join(metrics) + '\n'
         return HttpResponse(content, content_type='text/plain')
