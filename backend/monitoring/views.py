@@ -26,6 +26,12 @@ class GetMetricsResource(View):
         with open(str(settings.BASE_DIR) + f"/static/load_response.json", "r") as f:
             response_json = json.loads(f.read())
         metrics.append(f'load_warning {int(response_json["warning"])}')
+        
+        with open(str(settings.BASE_DIR) + f"/data/load_debug.json", "r") as f:
+            debug_json = json.loads(f.read())
+            
+        metrics.append(f'current_bucket_start_counts {debug_json["current_bucket_start_counts"]}')
+        metrics.append(f'past_buckets_avg {debug_json["past_buckets_avg"]}')
 
         content = '\n'.join(metrics) + '\n'
         return HttpResponse(content, content_type='text/plain')

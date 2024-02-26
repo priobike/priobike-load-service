@@ -43,11 +43,21 @@ class Command(BaseCommand):
             }
         else:
             response_json = {
-                "warning": warning
+                "warning": warning,
             }
+            
+        debug_json = {
+            "current_bucket_start_counts": current_bucket_start_counts,
+            "past_buckets_avg": past_buckets_avg
+        }
         
         with open(str(settings.BASE_DIR) + f"/static/load_response.json", "w") as f:
             f.write(json.dumps(response_json))
+            
+        with open(str(settings.BASE_DIR) + f"/data/load_debug.json", "w") as f:
+            f.write(json.dumps(debug_json))
+            
+    
         
             
         
