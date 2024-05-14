@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -18,11 +19,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = ['*']
 
+HEALTHCHECK_TOKEN = os.environ.get('HEALTHCHECK_TOKEN', 'healthcheck-token')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
+# Detect whether it's a test run or not.
+TESTING = sys.argv[1:2] == ['test']
+
+# Detect whether we run in worker or manager mode.
+WORKER_MODE = 'True' in os.environ.get('WORKER_MODE', 'False')
+if not WORKER_MODE:
+    # Needed to find the workers.
+    WORKER_HOST = os.environ.get('WORKER_HOST')
+else:
+    WORKER_HOST = None
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
+SYNC_PORT = os.environ.get('SYNC_PORT', 8001)
+SYNC_EXPOSED = 'True' in os.environ.get('SYNC_EXPOSED', 'False')
+SYNC_KEY = os.environ.get('SYNC_KEY')
 
 # The feedback service is deployed behind reverse NGINX proxies.
 # Therefore, we set the admin url here so that it redirects to the correct browser path. 
@@ -49,15 +67,16 @@ API_KEY = os.environ.get('API_KEY', 'secret')
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
 
     'app',
+    'sync',
 ]
+if not WORKER_MODE:
+    INSTALLED_APPS.append('django.contrib.admin')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -103,6 +122,11 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT'),
     }
 }
+if TESTING:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 
 # Password validation
@@ -137,14 +161,6 @@ USE_TZ = True
 
 # Configure under which URL the admin interface will be provided.
 ADMIN_URL = 'admin/'
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
-STATIC_URL = f'{APP_URL}static/'
-
-# Collect static files in deployment so that NGINX can access them.
-STATIC_ROOT =  os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

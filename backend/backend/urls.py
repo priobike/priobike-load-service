@@ -17,9 +17,21 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from backend.views import GetLoadResponseView, HealthcheckView, StatusView
+
 urlpatterns = [
     path('app/', include('app.urls')),
-    path('monitoring/', include('monitoring.urls')),
+    path('status', StatusView.as_view(), name='status'),
+    path('healthcheck', HealthcheckView.as_view(), name='healthcheck'),
 
-    path(settings.ADMIN_URL, admin.site.urls),
+    # Originally, this was mapped over an nginx proxy that was removed.
+    # Note: For this to work, the staticfiles app must be removed.
+    path('static/load_response.json', GetLoadResponseView.as_view(), name='load_response'),
 ]
+
+if settings.SYNC_EXPOSED:
+    urlpatterns.append(path('sync/', include('sync.urls')))
+
+if not settings.WORKER_MODE:
+    urlpatterns.append(path(settings.ADMIN_URL, admin.site.urls))
+    urlpatterns.append(path('monitoring/', include('monitoring.urls')))

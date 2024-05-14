@@ -13,6 +13,11 @@ docker-compose up
 #### POST /app/start
 
 ```bash
-curl -X POST http://localhost/production/load-service/app/start
+curl -X POST http://localhost/app/start
 ```
- 
+
+#### GET /monitoring/metrics
+
+```bash
+curl "http://localhost:8000/monitoring/metrics?api_key=secret"
+```
