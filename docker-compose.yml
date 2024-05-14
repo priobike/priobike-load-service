@@ -19,7 +19,6 @@ services:
     environment:
       - DJANGO_SUPERUSER_PASSWORD=secret
       - DJANGO_DEBUG_MODE=True
-      - FCM_PUSH_NOTIFICATION_ENVIRONMENT=dev
       - WORKER_HOST=worker
       - SYNC_KEY=secret
     ports:
