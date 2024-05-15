@@ -21,6 +21,12 @@ if [ "$WORKER_MODE" = "True" ]; then
     SYNC_EXPOSED="False" poetry run gunicorn backend.wsgi:application --workers 4 --bind 0.0.0.0:8000 &
     pids+=($!)
 else
+    # Create a superuser for the manager
+    poetry run python manage.py createsuperuser \
+        --noinput \
+        --username admin \
+        --email admin@example.com
+
     # If we are in the manager mode, we don't want to expose the sync API at all. However, we run a periodic sync.
     poetry run python manage.py sync --interval 60 --host "$WORKER_HOST" --port 8001 &
     pids+=($!)
