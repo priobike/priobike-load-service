@@ -114,9 +114,7 @@ class Command(BaseCommand):
 
             warning = past_buckets_avg > 0 and cpm > past_buckets_avg * 2
             if warning:
-                response_text = "Aktuell verzeichnen wir deutlich mehr Nutzende als in den letzten Wochen. Moin an alle Neulinge!\n" + \
-                                "Sollte es dadurch jedoch zu Problemen bei den Ladezeiten kommen, bitten wir um Verständnis. Wir arbeiten permanent an der Verbesserung der Performance. " + \
-                                "Bei Problemen meldet Euch gerne bei uns."
+                response_text = "Aktuell sind unsere Server außergewöhnlich stark ausgelastet."
             else:
                 response_text = None
 
