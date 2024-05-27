@@ -47,9 +47,8 @@ def push_to_workers(file_path):
         file_content = f.read()
     for worker_addr_info in socket.getaddrinfo(worker_host, worker_port, proto=socket.IPPROTO_TCP):
         worker_ip = worker_addr_info[4][0]
-        upload_file_path = file_path
-        if upload_file_path.startswith('/'):
-            upload_file_path = upload_file_path[1:]
+        # Get only the file name from the path
+        upload_file_path = os.path.basename(file_path)
         url = f'http://{worker_ip}:{worker_port}/upload/{upload_file_path}'
         retries = 2
         success = False
