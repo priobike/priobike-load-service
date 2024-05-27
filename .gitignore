@@ -38,3 +38,5 @@ db.sqlite3
 
 # optional environment file, read by honcho
 /.env
+
+load.json

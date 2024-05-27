@@ -1,54 +1,5 @@
-version: '3'
-
-networks:
-  test-network:
-    name: test-network
-
+version: "3.9"
 services:
-  manager:
-    networks:
-      - test-network
-    build: .
-    volumes:
-      # Listen to code changes
-      - ./:/code
-      # Persist Psql data
-      - pg_conf:/etc/postgresql
-      - pg_log:/var/log/postgresql
-      - pg_data:/var/lib/postgresql/data
-    environment:
-      - DJANGO_SUPERUSER_PASSWORD=secret
-      - DJANGO_DEBUG_MODE=True
-      - WORKER_HOST=worker
-      - SYNC_KEY=secret
-    ports:
-      - "8000:8000"
-    command: ./run-dev.sh
-    restart: unless-stopped
-
-  worker:
-    hostname: worker{{.Task.Slot}}.local
-    networks:
-      - test-network
-    build: .
-    volumes:
-      - ./:/code
-    environment:
-      - DJANGO_DEBUG_MODE=True
-      - WORKER_MODE=True
-      - SYNC_KEY=secret
-    command: ./run-dev.sh
-    restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.worker.rule=PathPrefix(`/`)
-      - traefik.http.routers.worker.entryPoints=web
-      - traefik.http.services.worker.loadbalancer.server.port=8000
-    deploy:
-      mode: replicated
-      endpoint_mode: dnsrr
-      replicas: 2
-
   traefik:
     image: traefik:v2.9
     hostname: traefik
@@ -56,16 +7,40 @@ services:
       - test-network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports: 
+    ports:
       - "80:80"
-      - "8080:8080"
     command:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=test-network
       - --entryPoints.web.address=:80
 
-volumes:
-  pg_data:
-  pg_conf:
-  pg_log:
+  manager:
+    build:
+      context: manager
+    networks:
+      - test-network
+    env_file:
+      - manager/.env
+
+  worker:
+    build:
+      context: worker
+    networks:
+      - test-network
+    env_file:
+      - worker/.env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.worker.rule=PathPrefix(`/`)
+      - traefik.http.routers.worker.entryPoints=web
+      - traefik.http.services.worker.loadbalancer.server.port=80
+    deploy:
+      mode: replicated
+      endpoint_mode: dnsrr
+      replicas: 2
+    restart: unless-stopped
+
+networks:
+  test-network:
+    name: test-network
