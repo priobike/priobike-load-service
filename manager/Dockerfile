@@ -20,10 +20,10 @@ WORKDIR /app
 RUN ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime && echo Europe/Berlin > /etc/timezone
 
 # Make cronjobs
-RUN crontab -l | { cat; echo "* * * * * python3 /app/estimate.py"; } | crontab -
+RUN crontab -l | { cat; echo "* * * * * python3 /app/estimate.py /usr/share/nginx/html/load.json"; } | crontab -
 
 # Expose port 80
 EXPOSE 80
 
 # Run cron in the background
-CMD python3 /app/estimate.py && cron && nginx -g "daemon off;"
+CMD python3 /app/estimate.py /usr/share/nginx/html/load.json && cron && nginx -g "daemon off;"
