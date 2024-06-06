@@ -7,3 +7,5 @@ A microservice that estimates the current load on the backend.
 ```bash
 docker-compose up
 ```
+
+To test prometheus needs to open to the outside
