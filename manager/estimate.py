@@ -150,7 +150,7 @@ def evaluate_cpu_usage(path):
 
     load_json = { 
         'timestamp': int(time.time()),
-        'warning': send_warning(ingress_load, worker_load, stateful_load),
+        'warning': evaluate_warning(ingress_load, worker_load, stateful_load),
     }
 
     with open(path or "load.json", "w") as outfile:
