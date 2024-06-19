@@ -70,7 +70,41 @@ def push_to_workers(file_path):
             retries -= 1
         if not success:
             raise Exception(f'Failed to push to worker {worker_ip}')
-
+        
+def evaluate_warning(ingress_load, worker_load, stateful_load):
+    """
+    Send a warning message if the CPU usage is too high.
+    We include randomness such that not all clients switch to the other backend all at once but with increasing chance the higher the load.
+    """
+    
+    chance_of_sending_warning = 0.0
+    
+    INGRESS_THRESHOLD = 80 # percent
+    WORKER_THRESHOLD = 80 # percent
+    STATEFUL_THRESHOLD = 80 # percent
+    
+    # Increase the chance of sending a warning if the load is higher than the threshold
+    if ingress_load > INGRESS_THRESHOLD:
+        diff = ingress_load - INGRESS_THRESHOLD
+        diff_normalized = diff / (100 - INGRESS_THRESHOLD)
+        chance_of_sending_warning += diff_normalized
+        
+    # Increase the chance of sending a warning if the load is higher than the threshold
+    if worker_load > WORKER_THRESHOLD:
+        diff = worker_load - WORKER_THRESHOLD
+        diff_normalized = diff / (100 - WORKER_THRESHOLD)
+        chance_of_sending_warning += diff_normalized
+        
+    # Increase the chance of sending a warning if the load is higher than the threshold
+    if stateful_load > STATEFUL_THRESHOLD:
+        diff = stateful_load - STATEFUL_THRESHOLD
+        diff_normalized = diff / (100 - STATEFUL_THRESHOLD)
+        chance_of_sending_warning += diff_normalized
+        
+    # Note: If multiple nodes are above the threshold, the chance of using the failover can be greater then 1.
+    # This is not a problem.
+    
+    return random.random() < chance_of_sending_warning
 
 def evaluate_cpu_usage(path):
     """
@@ -109,12 +143,14 @@ def evaluate_cpu_usage(path):
             return avg_cpu_usage
         log(f'[WARN] No data found for {node_name}')
         return 0
+    
+    ingress_load = sum([eval(data, name) for name in ingress_node_names]) / len(ingress_node_names)
+    worker_load = sum([eval(data, name) for name in worker_node_names]) / len(worker_node_names)
+    stateful_load = sum([eval(data, name) for name in stateful_node_names]) / len(stateful_node_names)
 
     load_json = { 
         'timestamp': int(time.time()),
-        'ingress': sum([eval(data, name) for name in ingress_node_names]) / len(ingress_node_names),
-        'worker': sum([eval(data, name) for name in worker_node_names]) / len(worker_node_names),
-        'stateful': sum([eval(data, name) for name in stateful_node_names]) / len(stateful_node_names),
+        'warning': evaluate_warning(ingress_load, worker_load, stateful_load),
     }
 
     with open(path or "load.json", "w") as outfile:
