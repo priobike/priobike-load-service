@@ -78,6 +78,7 @@ def evaluate_warning(ingress_load, worker_load, stateful_load):
     """
     
     chance_of_sending_warning = 0.0
+    warning = False
     
     INGRESS_THRESHOLD = 80 # percent
     WORKER_THRESHOLD = 80 # percent
@@ -88,23 +89,26 @@ def evaluate_warning(ingress_load, worker_load, stateful_load):
         diff = ingress_load - INGRESS_THRESHOLD
         diff_normalized = diff / (100 - INGRESS_THRESHOLD)
         chance_of_sending_warning += diff_normalized
+        warning = True
         
     # Increase the chance of sending a warning if the load is higher than the threshold
     if worker_load > WORKER_THRESHOLD:
         diff = worker_load - WORKER_THRESHOLD
         diff_normalized = diff / (100 - WORKER_THRESHOLD)
         chance_of_sending_warning += diff_normalized
+        warning = True
         
     # Increase the chance of sending a warning if the load is higher than the threshold
     if stateful_load > STATEFUL_THRESHOLD:
         diff = stateful_load - STATEFUL_THRESHOLD
         diff_normalized = diff / (100 - STATEFUL_THRESHOLD)
         chance_of_sending_warning += diff_normalized
+        warning = True
         
     # Note: If multiple nodes are above the threshold, the chance of using the failover can be greater then 1.
     # This is not a problem.
     
-    return random.random() < chance_of_sending_warning
+    return warning, random.random() < chance_of_sending_warning
 
 def evaluate_cpu_usage(path):
     """
@@ -147,10 +151,12 @@ def evaluate_cpu_usage(path):
     ingress_load = sum([eval(data, name) for name in ingress_node_names]) / len(ingress_node_names)
     worker_load = sum([eval(data, name) for name in worker_node_names]) / len(worker_node_names)
     stateful_load = sum([eval(data, name) for name in stateful_node_names]) / len(stateful_node_names)
+    warning, recommend_warning = evaluate_warning(ingress_load, worker_load, stateful_load)
 
     load_json = { 
         'timestamp': int(time.time()),
-        'warning': evaluate_warning(ingress_load, worker_load, stateful_load),
+        'recommendFallback': recommend_warning,
+        'warning': warning,
     }
 
     with open(path or "load.json", "w") as outfile:
