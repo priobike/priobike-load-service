@@ -7,10 +7,10 @@ env > /app/env.txt
 
 # Install cronjobs
 env | crontab -
-crontab -l | { cat; echo "* * * * * python3 /app/estimate.py /usr/share/nginx/html/load.json >> /var/log/cron.log 2>&1"; } | crontab -
+crontab -l | { cat; echo "* * * * * python3 /app/estimate.py /usr/share/nginx/html/load.json /usr/share/nginx/html/metrics.txt >> /var/log/cron.log 2>&1"; } | crontab -
 
 # Execute the script once
-python3 /app/estimate.py /usr/share/nginx/html/load.json
+python3 /app/estimate.py /usr/share/nginx/html/load.json /usr/share/nginx/html/metrics.txt
 
 # Start cron
 service cron start
