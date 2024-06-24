@@ -142,7 +142,7 @@ def evaluate_cpu_usage(status_path, metrics_path):
     query = '(1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[10m]))) * 100 * on(instance) group_left(node_id, node_name) node_meta'
     url = f'{prometheus_url}/api/v1/query_range'
     end_unix = int(time.time())
-    start_unix = end_unix - 60 * 10 # 10 minutes ago
+    start_unix = end_unix - 60 * 2 # 2 minutes ago
     
     params = {
         'query': query,
