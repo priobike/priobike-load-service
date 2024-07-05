@@ -104,7 +104,7 @@ def evaluate_warning(ingress_load, worker_load, stateful_load):
     
     INGRESS_THRESHOLD = 80 # percent
     WORKER_THRESHOLD = 80 # percent
-    STATEFUL_THRESHOLD = 80 # percent
+    STATEFUL_THRESHOLD = 90 # percent
     
     # Increase the chance of sending a warning if the load is higher than the threshold
     if ingress_load > INGRESS_THRESHOLD:
